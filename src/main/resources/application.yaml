@@ -10,3 +10,8 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+entities:
+  user:
+    modifier: 10
+    stIdx: 0
