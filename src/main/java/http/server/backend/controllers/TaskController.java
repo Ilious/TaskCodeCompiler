@@ -1,17 +1,26 @@
 package http.server.backend.controllers;
 
-import http.server.backend.model.RequestCode;
 import http.server.backend.model.Task;
 import http.server.backend.model.enums.Status;
+import http.server.backend.model.request.RequestTask;
 import http.server.backend.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/")
+
+@SecurityRequirement(name = "bearerAuth")
+@SecurityScheme(
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        scheme = "bearer")
 @RestController
 public class TaskController {
 
@@ -26,16 +35,24 @@ public class TaskController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Task created",
                     content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "409", description = "Task by this id is already exists",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "Error creating task",
+                    content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<Task> PostTask(@RequestBody RequestCode requestCode) {
-        Task task = taskService.postTask(requestCode.code(), requestCode.compiler());
+    public ResponseEntity<Task> PostTask(@RequestBody RequestTask requestTask) {
+        Task task = taskService.postTask(requestTask.code(), requestTask.compiler());
         return ResponseEntity.status(201).body(task);
     }
 
     @GetMapping("/status/{task_id}")
-    @Operation(summary = "Get status of a task by specified id", description = "Get task's statuss by id")
+    @Operation(summary = "Get status of a task by specified id", description = "Get task's status by id")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Success",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
@@ -49,6 +66,8 @@ public class TaskController {
     @Operation(summary = "Get result of a task by specified id", description = "Get task's code and compiler by id")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Success",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
