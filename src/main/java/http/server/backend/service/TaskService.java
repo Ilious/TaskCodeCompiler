@@ -1,7 +1,7 @@
 package http.server.backend.service;
 
 
-import http.server.backend.exceptions.Task.TaskCreateException;
+import http.server.backend.exceptions.storage.EntityCreateException;
 import http.server.backend.model.Task;
 import http.server.backend.model.enums.Status;
 import http.server.backend.repository.interfaces.ITaskRepo;
@@ -28,13 +28,13 @@ public class TaskService implements ITaskService {
     }
 
     @Override
-    public Task postTask(String code, String compiler) {
+    public Task postTask(String code, String compiler) throws EntityCreateException {
         Task task = new Task(generateIdx(), code, compiler, Status.InProgress);
 
         try {
             sleep(Duration.of(3, ChronoUnit.SECONDS));
         } catch (InterruptedException e) {
-            throw new TaskCreateException(task.getId());
+            throw new EntityCreateException(task.getId(), "task");
         }
 
         return taskRepo.postTask(task.getId(), task);
