@@ -1,7 +1,7 @@
 package http.server.backend.repository;
 
-import http.server.backend.exceptions.Task.TaskFoundException;
-import http.server.backend.exceptions.Task.TaskNotFoundException;
+import http.server.backend.exceptions.storage.EntityExistsException;
+import http.server.backend.exceptions.storage.EntityNotFoundException;
 import http.server.backend.model.Task;
 import http.server.backend.repository.interfaces.ITaskRepo;
 import org.springframework.stereotype.Repository;
@@ -22,26 +22,26 @@ public class TaskRepo implements ITaskRepo {
     }
 
     @Override
-    public Task postTask(String id, Task task) {
+    public Task postTask(String id, Task task) throws EntityExistsException {
         if (storage.get(id) != null)
-            throw new TaskFoundException(id);
+            throw new EntityExistsException(id, "task");
 
         storage.put(id, task);
         return task;
     }
 
     @Override
-    public Task deleteTask(String id) {
+    public Task deleteTask(String id) throws EntityNotFoundException {
         if (!storage.containsKey(id))
-            throw new TaskNotFoundException(id);
+            throw new EntityNotFoundException(id, "task");
 
         return storage.remove(id);
     }
 
     @Override
-    public Task getTask(String id) {
+    public Task getTask(String id) throws EntityNotFoundException {
         if (!storage.containsKey(id))
-            throw new TaskNotFoundException(id);
+            throw new EntityNotFoundException(id, "task");
 
         Task task = storage.get(id);
         return Task.builder()
