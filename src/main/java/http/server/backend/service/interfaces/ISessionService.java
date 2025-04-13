@@ -1,6 +1,6 @@
 package http.server.backend.service.interfaces;
 
-import http.server.backend.model.Session;
+import http.server.backend.model.api.Session;
 import http.server.backend.model.User;
 import org.springframework.scheduling.annotation.Scheduled;
 
