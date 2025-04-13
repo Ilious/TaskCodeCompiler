@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -71,7 +72,9 @@ public class AuthFilter implements Filter {
             String err = String.format("Token [%s] is not correct", ex.getBearerToken());
             log.warn("{}", err);
             ApiError error = ApiError.builder()
-                    .code(HttpStatus.FORBIDDEN.value())
+                    .code(ex.getBearerToken() == null ?
+                            HttpStatus.UNAUTHORIZED.value() :
+                            HttpStatus.FORBIDDEN.value())
                     .description(err)
                     .build();
             returnErr((HttpServletResponse) servletResponse, error);

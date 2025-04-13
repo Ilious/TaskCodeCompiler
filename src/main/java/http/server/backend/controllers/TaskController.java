@@ -39,6 +39,8 @@ public class TaskController {
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Token is not valid anymore",
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "409", description = "Task by this id is already exists",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "Error creating task",
@@ -56,6 +58,8 @@ public class TaskController {
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Token is not valid anymore",
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
     })
@@ -69,7 +73,9 @@ public class TaskController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Success",
                     content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
+            @ApiResponse(responseCode = "401", description = "No token",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Token is not valid anymore",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
