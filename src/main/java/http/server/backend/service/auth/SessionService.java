@@ -1,6 +1,6 @@
 package http.server.backend.service.auth;
 
-import http.server.backend.model.Session;
+import http.server.backend.model.api.Session;
 import http.server.backend.model.User;
 import http.server.backend.service.interfaces.ISessionService;
 import org.springframework.beans.factory.annotation.Value;

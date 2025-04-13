@@ -1,4 +1,4 @@
-package http.server.backend.model;
+package http.server.backend.model.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
