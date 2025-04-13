@@ -1,6 +1,9 @@
 package http.server.backend.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -10,9 +13,7 @@ public class User {
 
     private Long id;
 
-    @NonNull
     private String login;
 
-    @NonNull
     private String password;
 }
