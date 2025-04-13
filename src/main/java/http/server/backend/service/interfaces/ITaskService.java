@@ -1,6 +1,7 @@
 package http.server.backend.service.interfaces;
 
 import http.server.backend.exceptions.storage.EntityCreateException;
+import http.server.backend.model.CodeResult;
 import http.server.backend.model.Task;
 import http.server.backend.model.enums.Status;
 
@@ -11,5 +12,5 @@ public interface ITaskService {
 
     Status getStatusByTaskId(String id);
 
-    String getResultByTaskId(String id);
+    CodeResult getResultByTaskId(String id);
 }
