@@ -6,7 +6,6 @@ import http.server.backend.exceptions.storage.EntityNotFoundException;
 import http.server.backend.model.User;
 import http.server.backend.model.request.RequestUser;
 import http.server.backend.repository.interfaces.IUserRepo;
-import http.server.backend.service.interfaces.ISessionService;
 import http.server.backend.service.interfaces.IUserService;
 import http.server.backend.utils.LoginUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +25,6 @@ public class LoginService implements IUserService {
     public LoginService(@Value("${entities.user.modifier:5}") long MODIFIER,
                         @Value("${entities.user.stIdx:0}") long idx,
                         IUserRepo userRepo,
-                        ISessionService sessionService,
                         LoginUtils loginUtils) {
         this.MODIFIER = MODIFIER;
         this.idx = idx;

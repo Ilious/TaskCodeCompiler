@@ -74,7 +74,7 @@ public class AuthFilter implements Filter {
                     .code(HttpStatus.FORBIDDEN.value())
                     .description(err)
                     .build();
-            returnErr(httpReq, (HttpServletResponse) servletResponse, error);
+            returnErr((HttpServletResponse) servletResponse, error);
         }
     }
 
@@ -85,7 +85,7 @@ public class AuthFilter implements Filter {
         throw new AuthenticationException("Token is not correct", null);
     }
 
-    public void returnErr(HttpServletRequest req, HttpServletResponse resp, ApiError apiError) throws IOException {
+    public void returnErr(HttpServletResponse resp, ApiError apiError) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         resp.setStatus(apiError.getCode());
         resp.getOutputStream().print(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiError));
