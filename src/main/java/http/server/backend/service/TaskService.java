@@ -2,6 +2,7 @@ package http.server.backend.service;
 
 
 import http.server.backend.exceptions.storage.EntityCreateException;
+import http.server.backend.model.CodeResult;
 import http.server.backend.model.Task;
 import http.server.backend.model.enums.Status;
 import http.server.backend.repository.interfaces.ITaskRepo;
@@ -51,8 +52,10 @@ public class TaskService implements ITaskService {
     }
 
     @Override
-    public String getResultByTaskId(String id) {
+    public CodeResult getResultByTaskId(String id) {
         Task taskById = getTaskById(id);
-        return String.format("%s %s", taskById.getCompiler(), taskById.getCode());
+        return CodeResult.builder()
+                .result(String.format("%s %s", taskById.getCompiler(), taskById.getCode()))
+                .build();
     }
 }

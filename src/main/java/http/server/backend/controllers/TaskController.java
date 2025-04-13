@@ -1,9 +1,10 @@
 package http.server.backend.controllers;
 
+import http.server.backend.model.CodeResult;
 import http.server.backend.model.Task;
 import http.server.backend.model.enums.Status;
 import http.server.backend.model.request.RequestTask;
-import http.server.backend.service.TaskService;
+import http.server.backend.service.interfaces.ITaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +26,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class TaskController {
 
-    private final TaskService taskService;
+    private final ITaskService taskService;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(ITaskService taskService) {
         this.taskService = taskService;
     }
 
@@ -42,7 +44,7 @@ public class TaskController {
             @ApiResponse(responseCode = "500", description = "Error creating task",
                     content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<Task> PostTask(@RequestBody RequestTask requestTask) {
+    public ResponseEntity<Task> PostTask(@RequestBody @Valid RequestTask requestTask) {
         Task task = taskService.postTask(requestTask.code(), requestTask.compiler());
         return ResponseEntity.status(201).body(task);
     }
@@ -72,8 +74,8 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
     })
-    public ResponseEntity<String> getResultTaskById(@PathVariable(name = "task_id") String taskId) {
-        String result = taskService.getResultByTaskId(taskId);
+    public ResponseEntity<CodeResult> getResultTaskById(@PathVariable(name = "task_id") String taskId) {
+        CodeResult result = taskService.getResultByTaskId(taskId);
         return ResponseEntity.ok().body(result);
     }
 }
