@@ -1,4 +1,8 @@
 package http.server.backend.model.request;
 
-public record RequestTask(String code, String compiler) {
+import jakarta.validation.constraints.NotBlank;
+
+public record RequestTask(
+        @NotBlank String code,
+        @NotBlank String compiler) {
 }

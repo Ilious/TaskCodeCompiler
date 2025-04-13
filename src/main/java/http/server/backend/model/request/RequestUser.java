@@ -1,4 +1,8 @@
 package http.server.backend.model.request;
 
-public record RequestUser(String login, String password) {
+import jakarta.validation.constraints.NotBlank;
+
+public record RequestUser(
+        @NotBlank String login,
+        @NotBlank String password) {
 }
