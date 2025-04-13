@@ -1,5 +1,6 @@
 package http.server.backend.service.auth;
 
+import http.server.backend.exceptions.authentication.LoginException;
 import http.server.backend.exceptions.storage.EntityExistsException;
 import http.server.backend.exceptions.storage.EntityNotFoundException;
 import http.server.backend.model.User;
@@ -9,7 +10,6 @@ import http.server.backend.service.interfaces.ISessionService;
 import http.server.backend.service.interfaces.IUserService;
 import http.server.backend.utils.LoginUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -62,7 +62,7 @@ public class LoginService implements IUserService {
         String password = userRepo.getUserByLogin(user.login()).getPassword();
 
         if (!loginUtils.verifyPassword(user.password(), password))
-            throw new AuthenticationServiceException("user is not registered in system");
+            throw new LoginException("user is not registered in system", user.password());
 
         return userRepo.getUserByLogin(user.login());
     }

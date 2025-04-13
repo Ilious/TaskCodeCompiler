@@ -1,9 +1,14 @@
 package http.server.backend.component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import http.server.backend.exceptions.authentication.AuthenticationException;
+import http.server.backend.model.api.ApiError;
 import http.server.backend.service.auth.SessionService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,10 +18,11 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.util.Collections;
 
+@Slf4j
 @Component
 public class AuthFilter implements Filter {
 
-    private final String AUTHORIZATION = "Authorization";
+    private final static String AUTHORIZATION = "Authorization";
 
     private final SessionService sessionService;
 
@@ -25,7 +31,7 @@ public class AuthFilter implements Filter {
     }
 
     public boolean matchesSwaggerPath(String requestURI) {
-        return  requestURI.startsWith("/v3/api-docs") ||
+        return requestURI.startsWith("/v3/api-docs") ||
                 requestURI.startsWith("/swagger-ui");
     }
 
@@ -34,7 +40,6 @@ public class AuthFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest httpReq = (HttpServletRequest) servletRequest;
-        HttpServletResponse httpResp = (HttpServletResponse) servletResponse;
 
         String requestURI = httpReq.getRequestURI();
         if (requestURI.equals("/login") || requestURI.equals("/register") || matchesSwaggerPath(requestURI)) {
@@ -42,30 +47,34 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        final String token = getTokenFromRequest(httpReq);
-        if (token != null && sessionService.validateSession(token)) {
-            Long userId = sessionService.getUserId(token);
+        try {
+            final String token = getTokenFromRequest(httpReq);
+            if (sessionService.validateSession(token)) {
+                Long userId = sessionService.getUserId(token);
 
-            if (userId != null) {
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority("USER"))
-                        );
+                if (userId != null) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userId,
+                                    null,
+                                    Collections.singletonList(new SimpleGrantedAuthority("USER"))
+                            );
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+
+                filterChain.doFilter(servletRequest, servletResponse);
+            } else {
+                throw new AuthenticationException("Token is not correct", token);
             }
-
-
-            filterChain.doFilter(servletRequest, servletResponse);
-        } else {
-            servletResponse.setContentType("application/json");
-            servletResponse.setCharacterEncoding("UTF-8");
-            String errorResp = "{\"error\":\"Unauthorized\",\"message\":\"Session is not valid\"}";
-            servletResponse.getWriter().write(errorResp);
-            httpResp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            servletResponse.flushBuffer();
+        } catch (AuthenticationException ex) {
+            String err = String.format("Token [%s] is not correct", ex.getBearerToken());
+            log.warn("{}", err);
+            ApiError error = ApiError.builder()
+                    .code(HttpStatus.FORBIDDEN.value())
+                    .description(err)
+                    .build();
+            returnErr(httpReq, (HttpServletResponse) servletResponse, error);
         }
     }
 
@@ -73,6 +82,12 @@ public class AuthFilter implements Filter {
         final String bearer = servletRequest.getHeader(AUTHORIZATION);
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer "))
             return bearer.substring(7);
-        return null;
+        throw new AuthenticationException("Token is not correct", null);
+    }
+
+    public void returnErr(HttpServletRequest req, HttpServletResponse resp, ApiError apiError) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        resp.setStatus(apiError.getCode());
+        resp.getOutputStream().print(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiError));
     }
 }
