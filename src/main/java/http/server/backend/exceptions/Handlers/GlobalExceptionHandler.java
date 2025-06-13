@@ -18,13 +18,13 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
-public class EntityExceptionsHandler {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError getEntityExistsHandler(EntityExistsException entityExistsException) {
         String errMessage = String.format("Entity [%s]: [%s] already exists exception",
-                entityExistsException.getModel(), entityExistsException.getId());
+                entityExistsException.getModel(), entityExistsException.getValue());
         log.warn("{}:\n {}", errMessage, entityExistsException.getMessage());
         return ApiError.builder()
                 .code(HttpStatus.CONFLICT.value())
@@ -81,7 +81,21 @@ public class EntityExceptionsHandler {
                 .code(HttpStatus.BAD_REQUEST.value()).build();
     }
 
+//    @ExceptionHandler
+//    public ApiError getDockerHandler(HttpHostConnectException exception) {
+//        String errMessage = "Internal server exception";
+//        System.out.println(exception.getHost());
+//        System.out.println(exception.getHost().getHostName());
+//        System.out.println(exception.getHost().getPort());
+//        log.warn("{}:\n {}", errMessage, exception.getMessage());
+//        return ApiError.builder()
+//                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+//                .description(errMessage)
+//                .build();
+//    }
+
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError getUnknownErrorHandler(Exception exception) {
         String errMessage = "Internal server exception";
         log.warn("{}:\n {}", errMessage, exception.getMessage());

@@ -1,44 +1,41 @@
 package http.server.backend.service;
 
 
-import http.server.backend.exceptions.storage.EntityCreateException;
 import http.server.backend.model.CodeResult;
 import http.server.backend.model.Task;
+import http.server.backend.model.enums.Compiler;
 import http.server.backend.model.enums.Status;
+import http.server.backend.repository.interfaces.ICodeResultRepo;
 import http.server.backend.repository.interfaces.ITaskRepo;
+import http.server.backend.sender.IRabbitService;
 import http.server.backend.service.interfaces.ITaskService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-import static java.lang.Thread.sleep;
-
 @Service
+@RequiredArgsConstructor
 public class TaskService implements ITaskService {
 
     private final ITaskRepo taskRepo;
+
+    private final ICodeResultRepo codeResultRepo;
+
+    private final IRabbitService rabbitService;
 
     private String generateIdx() {
         return UUID.randomUUID().toString();
     }
 
-    public TaskService(ITaskRepo taskRepo) {
-        this.taskRepo = taskRepo;
-    }
-
     @Override
-    public Task postTask(String code, String compiler) throws EntityCreateException {
-        Task task = new Task(generateIdx(), code, compiler, Status.InProgress);
+    public Task postTask(String code, String compiler) {
+        Task task = new Task(generateIdx(), code, Compiler.from(compiler), Status.InProgress);
 
-        try {
-            sleep(Duration.of(3, ChronoUnit.SECONDS));
-        } catch (InterruptedException e) {
-            throw new EntityCreateException(task.getId(), "task");
-        }
+        Task sentTask = taskRepo.postTask(task.getId(), task);
+        rabbitService.sendMessage(sentTask);
 
-        return taskRepo.postTask(task.getId(), task);
+        return sentTask;
     }
 
     @Override
@@ -54,8 +51,6 @@ public class TaskService implements ITaskService {
     @Override
     public CodeResult getResultByTaskId(String id) {
         Task taskById = getTaskById(id);
-        return CodeResult.builder()
-                .result(String.format("%s %s", taskById.getCompiler(), taskById.getCode()))
-                .build();
+        return codeResultRepo.getResult(id);
     }
 }

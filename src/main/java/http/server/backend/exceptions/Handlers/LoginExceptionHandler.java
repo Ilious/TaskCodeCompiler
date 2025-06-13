@@ -1,4 +1,4 @@
-package http.server.backend.exceptions.Handlers.authentication;
+package http.server.backend.exceptions.Handlers;
 
 import http.server.backend.exceptions.authentication.LoginException;
 import http.server.backend.model.api.ApiError;

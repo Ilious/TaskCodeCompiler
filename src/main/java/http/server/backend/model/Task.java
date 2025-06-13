@@ -1,6 +1,7 @@
 package http.server.backend.model;
 
 
+import http.server.backend.model.enums.Compiler;
 import http.server.backend.model.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ public class Task {
 
     private String code;
 
-    private String compiler;
+    private Compiler compiler;
 
     private Status status;
 }

@@ -1,9 +1,11 @@
 spring:
   application:
     name: backend
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 springdoc:
   swagger-ui:
@@ -16,3 +18,17 @@ entities:
 
 session:
   duration: 10
+
+broker:
+  queue: code-processor
+  exchange: rabbit_mq_exchange
+  key: rabbit_mq_r_key
+  login:
+    username: guest
+    password: guest
+    address: rabbitmq # localhost or rabbitmq
+    port: 5672
+
+docker:
+  compiler:
+    path: /app/dockerCompiler # /app/dockerCompiler or another path on windows
