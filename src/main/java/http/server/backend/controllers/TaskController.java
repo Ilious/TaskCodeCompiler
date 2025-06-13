@@ -3,26 +3,21 @@ package http.server.backend.controllers;
 import http.server.backend.model.CodeResult;
 import http.server.backend.model.Task;
 import http.server.backend.model.enums.Status;
-import http.server.backend.model.request.RequestTask;
 import http.server.backend.service.interfaces.ITaskService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 
-@SecurityRequirement(name = "bearerAuth")
-@SecurityScheme(
-        name = "bearerAuth",
-        type = SecuritySchemeType.HTTP,
-        bearerFormat = "JWT",
-        scheme = "bearer")
+//@SecurityRequirement(name = "bearerAuth")
+//@SecurityScheme(
+//        name = "bearerAuth",
+//        type = SecuritySchemeType.HTTP,
+//        bearerFormat = "JWT",
+//        scheme = "bearer")
 @RestController
 public class TaskController {
 
@@ -32,7 +27,8 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @PostMapping("/task")
+    @PostMapping("/task/{compiler}")
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Post task", description = "Create a new Task with code and compiler")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Task created",
@@ -46,9 +42,8 @@ public class TaskController {
             @ApiResponse(responseCode = "500", description = "Error creating task",
                     content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<Task> PostTask(@RequestBody @Valid RequestTask requestTask) {
-        Task task = taskService.postTask(requestTask.code(), requestTask.compiler());
-        return ResponseEntity.status(201).body(task);
+    public Task PostTask(@RequestBody String code, @PathVariable String compiler) {
+        return taskService.postTask(code, compiler);
     }
 
     @GetMapping("/status/{task_id}")
@@ -63,9 +58,8 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
     })
-    public ResponseEntity<Status> getStatusTaskById(@PathVariable(name = "task_id") String taskId) {
-        Status status = taskService.getStatusByTaskId(taskId);
-        return ResponseEntity.ok().body(status);
+    public Status getStatusTaskById(@PathVariable(name = "task_id") String taskId) {
+        return taskService.getStatusByTaskId(taskId);
     }
 
     @GetMapping("/result/{task_id}")
@@ -80,8 +74,7 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
     })
-    public ResponseEntity<CodeResult> getResultTaskById(@PathVariable(name = "task_id") String taskId) {
-        CodeResult result = taskService.getResultByTaskId(taskId);
-        return ResponseEntity.ok().body(result);
+    public CodeResult getResultTaskById(@PathVariable(name = "task_id") String taskId) {
+        return taskService.getResultByTaskId(taskId);
     }
 }

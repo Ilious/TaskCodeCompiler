@@ -4,7 +4,7 @@ import http.server.backend.exceptions.storage.EntityExistsException;
 import http.server.backend.exceptions.storage.EntityNotFoundException;
 import http.server.backend.model.Task;
 
-public interface ITaskRepo {
+public interface  ITaskRepo {
 
     Task postTask(String id, Task task) throws EntityExistsException;
 

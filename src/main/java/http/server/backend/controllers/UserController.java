@@ -1,8 +1,8 @@
 package http.server.backend.controllers;
 
+import http.server.backend.model.User;
 import http.server.backend.model.api.BearerToken;
 import http.server.backend.model.api.Session;
-import http.server.backend.model.User;
 import http.server.backend.model.request.RequestUser;
 import http.server.backend.service.interfaces.ISessionService;
 import http.server.backend.service.interfaces.IUserService;
@@ -12,9 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -30,6 +30,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Register user by login and password", description = "register user in storage")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Success",
@@ -39,12 +40,12 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "User exists",
                     content = @Content(mediaType = "application/json")),
     })
-    public ResponseEntity<User> registerUser(@RequestBody @Valid RequestUser user) {
-        User createdUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    public User registerUser(@RequestBody @Valid RequestUser user) {
+        return userService.createUser(user);
     }
 
     @PostMapping("/login")
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Login user by login and password", description = "returns sessionId")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Success",
@@ -54,10 +55,10 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Password is not correct",
                     content = @Content(mediaType = "application/json")),
     })
-    public ResponseEntity<BearerToken> loginUser(@RequestBody @Valid RequestUser user) {
+    public BearerToken loginUser(@RequestBody @Valid RequestUser user) {
         User loggedUser = userService.loginUser(user);
         Session session = sessionService.createSession(loggedUser);
 
-        return ResponseEntity.status(HttpStatus.OK).body(BearerToken.of(session.getId()));
+        return BearerToken.of(session.getId());
     }
 }

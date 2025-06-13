@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: backend-test
+  main:
+    banner-mode: off
+
+server:
+  port: 8090
+
+
+entities:
+  user:
+    modifier: 10
+    stIdx: 0

@@ -43,11 +43,6 @@ public class TaskRepo implements ITaskRepo {
         if (!storage.containsKey(id))
             throw new EntityNotFoundException(id, "task");
 
-        Task task = storage.get(id);
-        return Task.builder()
-                .id(task.getId())
-                .status(task.getStatus())
-                .code(task.getCode())
-                .compiler(task.getCompiler()).build();
+        return storage.get(id);
     }
 }
