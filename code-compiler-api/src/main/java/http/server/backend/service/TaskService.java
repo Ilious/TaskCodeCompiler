@@ -56,6 +56,7 @@ public class TaskService implements ITaskService {
 
     @Override
     public CodeResult putResultByTaskId(String id, CodeResult result) {
+        taskRepo.getTask(id).setStatus(Status.Ready);
         return codeResultRepo.putResult(id, result);
     }
 }
