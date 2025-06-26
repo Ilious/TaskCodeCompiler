@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: backend
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+  rabbitmq:
+    listener:
+      simple:
+        default-requeue-rejected: false
+
+server:
+  port: ${PORT:8090}
+
+springdoc:
+  swagger-ui:
+    url: /v3/api-docs
+
+entities:
+  user:
+    modifier: 10
+    stIdx: 0
+
+session:
+  duration: 10
+
+broker:
+  queue: code-processor
+  exchange: rabbit_mq_exchange
+  key: rabbit_mq_r_key
+  login:
+    username: guest
+    password: guest
+    address: rabbitmq # localhost or rabbitmq
+    port: 5672
+
+logging:
+  level:
+    http.server.backend: trace
