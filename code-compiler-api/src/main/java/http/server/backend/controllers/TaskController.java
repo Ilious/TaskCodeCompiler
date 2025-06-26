@@ -5,19 +5,22 @@ import http.server.backend.model.Task;
 import http.server.backend.model.enums.Status;
 import http.server.backend.service.interfaces.ITaskService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 
-//@SecurityRequirement(name = "bearerAuth")
-//@SecurityScheme(
-//        name = "bearerAuth",
-//        type = SecuritySchemeType.HTTP,
-//        bearerFormat = "JWT",
-//        scheme = "bearer")
+@SecurityRequirement(name = "bearerAuth")
+@SecurityScheme(
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        scheme = "bearer")
 @RestController
 public class TaskController {
 
@@ -81,7 +84,7 @@ public class TaskController {
 
     @PostMapping("/commit/{task_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Post codeResult from consumer service")
+    @Operation(summary = "Example endpoint to post codeResult from consumer service")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Success",
                     content = @Content(mediaType = "application/json")),
@@ -92,7 +95,8 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "Task not found",
                     content = @Content(mediaType = "application/json")),
     })
-    public CodeResult postResultTaskById(@PathVariable(name = "task_id") String taskId, @RequestBody CodeResult codeResult) {
+    public CodeResult postResultTaskById(@PathVariable(name = "task_id") String taskId,
+                                         @RequestBody CodeResult codeResult) {
         return taskService.putResultByTaskId(taskId, codeResult);
     }
 }
