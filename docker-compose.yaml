@@ -1,7 +1,5 @@
 services:
   server:
-    user: root
-    privileged: true
     env_file:
       - .env
     environment:
@@ -9,12 +7,32 @@ services:
 
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./code-compiler-api/Dockerfile
 
     restart: on-failure
     ports:
       - ${PORT}:${PORT}
       - "2375:2375"
+
+    depends_on:
+      - rabbitmq
+
+  consumer:
+    user: root
+    privileged: true
+    env_file:
+      - .env
+    environment:
+      PORT: $CONSUMER_PORT
+
+    build:
+      context: .
+      dockerfile: ./code-compiler-consumer/Dockerfile
+
+    restart: on-failure
+    ports:
+      - ${CONSUMER_PORT}:${CONSUMER_PORT}
+      - "2380:2375"
 
     depends_on:
       - rabbitmq

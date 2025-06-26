@@ -1,0 +1,20 @@
+server:
+  port: ${PORT:8090}
+
+broker:
+  queue: code-processor
+  exchange: rabbit_mq_exchange
+  key: rabbit_mq_r_key
+  login:
+    username: guest
+    password: guest
+    address: rabbitmq # localhost or rabbitmq
+    port: 5672
+
+docker:
+  compiler:
+    path: /app/code-compiler-consumer/dockerCompiler # /app/dockerCompiler or another path on windows
+
+logging:
+  level:
+    http.server.queue: trace
