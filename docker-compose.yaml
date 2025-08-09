@@ -1,0 +1,58 @@
+services:
+  server:
+    env_file:
+      - .env
+    environment:
+      PORT: $PORT
+
+    build:
+      context: .
+      dockerfile: ./code-compiler-api/Dockerfile
+
+    restart: on-failure
+    ports:
+      - ${PORT}:${PORT}
+      - "2375:2375"
+
+    depends_on:
+      - rabbitmq
+
+  consumer:
+    user: root
+    privileged: true
+    env_file:
+      - .env
+    environment:
+      PORT: $CONSUMER_PORT
+
+    build:
+      context: .
+      dockerfile: ./code-compiler-consumer/Dockerfile
+
+    restart: on-failure
+    ports:
+      - ${CONSUMER_PORT}:${CONSUMER_PORT}
+      - "2380:2375"
+
+    depends_on:
+      - rabbitmq
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock" # Allow access to docker daemon
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 30s
+      retries: 3
