@@ -1,13 +1,13 @@
 package http.server.backend.repository.interfaces;
 
-import http.server.backend.model.User;
+import http.server.backend.model.user.UserDto;
 import http.server.backend.exceptions.storage.EntityNotFoundException;
 
 public interface IUserRepo {
 
-    User postUser(User user);
+    UserDto postUser(UserDto userDto);
 
-    User getUserByLogin(String login) throws EntityNotFoundException;
+    UserDto getUserByLogin(String login) throws EntityNotFoundException;
 
     boolean userExists(String login);
 }

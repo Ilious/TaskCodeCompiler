@@ -1,6 +1,6 @@
 package http.server.backend.repository;
 
-import http.server.backend.model.User;
+import http.server.backend.model.user.UserDto;
 import http.server.backend.repository.interfaces.IUserRepo;
 import http.server.backend.exceptions.storage.EntityNotFoundException;
 import org.springframework.stereotype.Repository;
@@ -11,32 +11,32 @@ import java.util.Map;
 @Repository
 public class UserRepo implements IUserRepo {
 
-    private final Map<Long, User> storage = new HashMap<>();
+    private final Map<Long, UserDto> storage = new HashMap<>();
 
     @Override
-    public User postUser(User user) {
-        storage.put(user.getId(), user);
+    public UserDto postUser(UserDto userDto) {
+        storage.put(userDto.id(), userDto);
 
-        return user;
+        return userDto;
     }
 
     @Override
-    public User getUserByLogin(String login) throws EntityNotFoundException {
-        User userByName = storage.values()
+    public UserDto getUserByLogin(String login) throws EntityNotFoundException {
+        UserDto userDtoByName = storage.values()
                 .stream()
-                .filter(u -> u.getLogin().equals(login))
+                .filter(u -> u.login().equals(login))
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException(login, "user"));
 
-        return new User(userByName.getId(),
-                userByName.getLogin(),
-                userByName.getPassword());
+        return new UserDto(userDtoByName.id(),
+                userDtoByName.login(),
+                userDtoByName.password());
     }
 
     @Override
     public boolean userExists(String login) {
         return storage.values()
                 .stream()
-                .anyMatch(u -> u.getLogin().equals(login));
+                .anyMatch(u -> u.login().equals(login));
     }
 }

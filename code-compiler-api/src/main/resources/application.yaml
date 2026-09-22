@@ -6,20 +6,24 @@ spring:
       simple:
         default-requeue-rejected: false
 
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    url: jdbc:postgresql://localhost:5432/backend
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  liquibase:
+    clear-checksums: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
 server:
   port: ${PORT:8090}
 
 springdoc:
   swagger-ui:
     url: /v3/api-docs
-
-entities:
-  user:
-    modifier: 10
-    stIdx: 0
-
-session:
-  duration: 10
 
 broker:
   queue: code-processor

@@ -1,13 +1,13 @@
 package http.server.backend.service.interfaces;
 
-import http.server.backend.model.api.Session;
-import http.server.backend.model.User;
+import http.server.backend.model.session.SessionDto;
+import http.server.backend.model.user.UserDto;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.concurrent.TimeUnit;
 
 public interface ISessionService {
-    Session createSession(User user);
+    SessionDto createSession(UserDto userDto);
 
     boolean validateSession(String sessionId);
 

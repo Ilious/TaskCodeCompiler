@@ -1,9 +1,9 @@
 package http.server.backend.controllers;
 
-import http.server.backend.model.User;
+import http.server.backend.model.user.UserDto;
 import http.server.backend.model.api.BearerToken;
-import http.server.backend.model.api.Session;
-import http.server.backend.model.request.RequestUser;
+import http.server.backend.model.session.SessionDto;
+import http.server.backend.model.user.RequestUser;
 import http.server.backend.service.interfaces.ISessionService;
 import http.server.backend.service.interfaces.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +40,7 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "User exists",
                     content = @Content(mediaType = "application/json")),
     })
-    public User registerUser(@RequestBody @Valid RequestUser user) {
+    public UserDto registerUser(@RequestBody @Valid RequestUser user) {
         return userService.createUser(user);
     }
 
@@ -56,9 +56,9 @@ public class UserController {
                     content = @Content(mediaType = "application/json")),
     })
     public BearerToken loginUser(@RequestBody @Valid RequestUser user) {
-        User loggedUser = userService.loginUser(user);
-        Session session = sessionService.createSession(loggedUser);
+        UserDto loggedUserDto = userService.loginUser(user);
+        SessionDto sessionDto = sessionService.createSession(loggedUserDto);
 
-        return BearerToken.of(session.getId());
+        return BearerToken.of(sessionDto.getId());
     }
 }

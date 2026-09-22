@@ -1,4 +1,4 @@
-package http.server.backend.model.request;
+package http.server.backend.model.user;
 
 import jakarta.validation.constraints.NotBlank;
 

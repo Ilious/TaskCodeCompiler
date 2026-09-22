@@ -33,6 +33,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.5.5'
 
 	implementation 'jakarta.servlet:jakarta.servlet-api'
 
@@ -40,6 +41,12 @@ dependencies {
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	compileOnly 'org.mapstruct:mapstruct:1.5.5.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+	runtimeOnly 'org.postgresql:postgresql:42.7.7'
+	implementation 'org.liquibase:liquibase-core:4.33.0'
 
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 

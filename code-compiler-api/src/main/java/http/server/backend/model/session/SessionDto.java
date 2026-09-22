@@ -1,4 +1,4 @@
-package http.server.backend.model.api;
+package http.server.backend.model.session;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import java.time.Instant;
 @Data
 @Builder
 @AllArgsConstructor
-public class Session {
+public class SessionDto {
 
     private String id;
 

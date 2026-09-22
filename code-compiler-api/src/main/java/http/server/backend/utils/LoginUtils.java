@@ -1,22 +1,17 @@
 package http.server.backend.utils;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-@Component
 public class LoginUtils {
 
-    private final PasswordEncoder passwordEncoder;
+    private static final PasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
 
-    public LoginUtils(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
+    public static boolean verifyPassword(String raw, String encoded) {
+        return PASSWORD_ENCODER.matches(raw, encoded);
     }
 
-    public boolean verifyPassword(String raw, String encoded) {
-        return passwordEncoder.matches(raw, encoded);
-    }
-
-    public String encodePassword(String password) {
-        return passwordEncoder.encode(password);
+    public static String encodePassword(String password) {
+        return PASSWORD_ENCODER.encode(password);
     }
 }

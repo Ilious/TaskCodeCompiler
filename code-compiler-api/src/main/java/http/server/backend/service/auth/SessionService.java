@@ -1,51 +1,49 @@
 package http.server.backend.service.auth;
 
-import http.server.backend.model.api.Session;
-import http.server.backend.model.User;
+import http.server.backend.mappers.SessionMapper;
+import http.server.backend.model.session.Session;
+import http.server.backend.model.session.SessionDto;
+import http.server.backend.model.user.UserDto;
+import http.server.backend.repository.SessionRepoJPA;
 import http.server.backend.service.interfaces.ISessionService;
-import org.springframework.beans.factory.annotation.Value;
+import http.server.backend.service.interfaces.IUserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@RequiredArgsConstructor
 public class SessionService implements ISessionService {
 
-    private final Map<String, Session> sessionStorage = new ConcurrentHashMap<>();
+    private final SessionMapper sessionMapper;
 
-    private final int sessionDuration;
+    private final SessionRepoJPA sessionRepo;
 
-    public SessionService(@Value("${session.duration:10}") int sessionTime) {
-        sessionDuration = sessionTime;
-    }
+    private final IUserService userService;
 
     @Override
-    public Session createSession(User user) {
-        String sessionId = UUID.randomUUID().toString();
-        Session session = Session.builder()
-                .id(sessionId)
-                .user_id(user.getId())
-                .duration(Duration.ofMinutes(sessionDuration))
-                .stTime(Instant.now())
-                .build();
+    public SessionDto createSession(UserDto userDto) {
+        Session session = sessionMapper.toEntity(userDto);
 
-        sessionStorage.put(sessionId, session);
-        return session;
+        session.setUser(userService.getUserById(userDto.id()));
+
+        return sessionMapper.toDto(sessionRepo.save(session));
     }
 
     @Override
     public boolean validateSession(String sessionId) {
-        Session session = sessionStorage.getOrDefault(sessionId, null);
+        Optional<Session> session = sessionRepo.findById(sessionId);
 
-        if (session == null)
+        if (session.isEmpty())
             return false;
 
-        if (Instant.now().isAfter(session.getStTime().plus(session.getDuration()))) {
+        Session sessionObj = session.get();
+
+        if (Instant.now().isAfter(session.get().getStTime().plus(sessionObj.getDuration()))){
             removeSession(sessionId);
             return false;
         }
@@ -55,15 +53,15 @@ public class SessionService implements ISessionService {
 
     @Override
     public void removeSession(String sessionId) {
-        sessionStorage.remove(sessionId);
+        sessionRepo.removeById(sessionId);
     }
 
     @Override
     public Long getUserId(String token) {
-        Session session = sessionStorage.getOrDefault(token, null);
-        if (Objects.isNull(session))
-            return null;
-        return session.getUser_id();
+        Optional<Session> session = sessionRepo.findById(token);
+        return session
+                .map(value -> value.getUser().getId())
+                .orElse(null);
     }
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.DAYS)
@@ -71,7 +69,7 @@ public class SessionService implements ISessionService {
     public void clearExpiredSessions() {
         Set<String> expiredSessions = new HashSet<>();
 
-        for (Session session : sessionStorage.values())
+        for (Session session : sessionRepo.findAll())
             if (Instant.now().isAfter(session.getStTime().plus(session.getDuration())))
                 expiredSessions.add(session.getId());
 
