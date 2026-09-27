@@ -1,20 +1,26 @@
 package http.server.backend.service.auth;
 
+import http.server.backend.config.SessionConfig;
 import http.server.backend.mappers.SessionMapper;
 import http.server.backend.model.session.Session;
 import http.server.backend.model.session.SessionDto;
-import http.server.backend.model.user.UserDto;
+import http.server.backend.model.user.ResponseUser;
+import http.server.backend.model.user.User;
 import http.server.backend.repository.SessionRepoJPA;
 import http.server.backend.service.interfaces.ISessionService;
 import http.server.backend.service.interfaces.IUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SessionService implements ISessionService {
@@ -25,55 +31,51 @@ public class SessionService implements ISessionService {
 
     private final IUserService userService;
 
-    @Override
-    public SessionDto createSession(UserDto userDto) {
-        Session session = sessionMapper.toEntity(userDto);
+    private final SessionConfig config;
 
-        session.setUser(userService.getUserById(userDto.id()));
+    @Override
+    public SessionDto createSession(ResponseUser userDto) {
+        User userById = userService.getUserById(userDto.id());
+
+        Instant now = Instant.now();
+        Session session = Session.builder()
+                .user(userById)
+                .createdAt(now)
+                .expiresAt(now.plus(Duration.ofMinutes(config.getTtlMinutes())))
+                .build();
 
         return sessionMapper.toDto(sessionRepo.save(session));
     }
 
     @Override
-    public boolean validateSession(String sessionId) {
-        Optional<Session> session = sessionRepo.findById(sessionId);
-
-        if (session.isEmpty())
-            return false;
-
-        Session sessionObj = session.get();
-
-        if (Instant.now().isAfter(session.get().getStTime().plus(sessionObj.getDuration()))){
-            removeSession(sessionId);
-            return false;
-        }
-
-        return true;
+    public boolean validateSession(UUID sessionId) {
+        return sessionRepo.findById(sessionId)
+                .map(session -> !session.isExpired())
+                .orElse(false);
     }
 
     @Override
-    public void removeSession(String sessionId) {
+    public void removeSession(UUID sessionId) {
         sessionRepo.removeById(sessionId);
     }
 
     @Override
-    public Long getUserId(String token) {
+    public Long getUserId(UUID token) {
         Optional<Session> session = sessionRepo.findById(token);
         return session
                 .map(value -> value.getUser().getId())
                 .orElse(null);
     }
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.DAYS)
-    @Override
+    @Transactional
+    @Scheduled(
+            fixedRateString = "${app.session.clean-in-hours:1}",
+            timeUnit = TimeUnit.HOURS
+    )
     public void clearExpiredSessions() {
-        Set<String> expiredSessions = new HashSet<>();
+        Instant now = Instant.now();
+        int deleted = sessionRepo.deleteExpired(now);
 
-        for (Session session : sessionRepo.findAll())
-            if (Instant.now().isAfter(session.getStTime().plus(session.getDuration())))
-                expiredSessions.add(session.getId());
-
-        for (String sessionId : expiredSessions)
-            removeSession(sessionId);
+        log.info("Expired sessions are cleared {}", deleted);
     }
 }

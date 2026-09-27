@@ -2,43 +2,56 @@ services:
   server:
     env_file:
       - .env
+
     environment:
-      PORT: $PORT
+      PORT: ${PORT}
+      DB_URL: jdbc:postgresql://db:5432/${DB:-backend}
+      BROKER_ADDRESS: rabbitmq
 
     build:
       context: .
       dockerfile: ./code-compiler-api/Dockerfile
 
     restart: on-failure
+
     ports:
-      - ${PORT}:${PORT}
-      - "2375:2375"
+      - "${PORT}:${PORT}"
 
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+
 
   consumer:
     user: root
-    privileged: true
+
     env_file:
       - .env
+
     environment:
-      PORT: $CONSUMER_PORT
+      PORT: ${CONSUMER_PORT}
+      BROKER_ADDRESS: rabbitmq
+      APP_DOCKERFILE_PATH: /app/dockerCompiler
+      APP_DOCKER_HOST: unix:///var/run/docker.sock
 
     build:
       context: .
       dockerfile: ./code-compiler-consumer/Dockerfile
 
     restart: on-failure
+
     ports:
-      - ${CONSUMER_PORT}:${CONSUMER_PORT}
-      - "2380:2375"
+      - "${CONSUMER_PORT}:${CONSUMER_PORT}"
 
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock" # Allow access to docker daemon
+      - /var/run/docker.sock:/var/run/docker.sock
+
 
   rabbitmq:
     image: rabbitmq:management-alpine
@@ -56,3 +69,22 @@ services:
       interval: 10s
       timeout: 30s
       retries: 3
+
+
+  db:
+    image: postgres:16.9-bookworm
+
+    ports:
+      - "5434:5432"
+
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB:-backend}
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

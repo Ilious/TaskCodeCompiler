@@ -11,6 +11,7 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -25,14 +26,29 @@ public class CodeProcessor {
 
     private final RabbitTemplate rabbitTemplate;
 
+    @Transactional
     @RabbitListener(queues = "${broker.queue}")
-    public void processTaskFromQueue(Task task) throws ExecutionException, InterruptedException {
+    public void processTaskFromQueue(Task task) {
         log.debug("task by id {} in process", task.getId());
 
-        CompletableFuture<CodeResult> taskResult = runner.execute(task);
-        log.debug("Proceed task from queue by id: {}", task.getId());
-        task.setStatus(Status.Ready);
+        try {
+            CompletableFuture<CodeResult> taskResult = runner.execute(task);
 
-        rabbitTemplate.convertAndSend("result.queue", new ResultMessage(taskResult.get(), task.getId()));
+            CodeResult result = taskResult.get();
+
+            task.setStatus(Status.Ready);
+            log.debug("Task completed by id {}", task.getId());
+
+            rabbitTemplate.convertAndSend("result.queue", new ResultMessage(result, task.getId()));
+        } catch (ExecutionException e) {
+            task.setStatus(Status.Failed);
+
+            log.error("Task execution failed {}", task.getId(), e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            task.setStatus(Status.Failed);
+
+            log.error("Task {} processing was interrupted", task.getId());
+        }
     }
 }

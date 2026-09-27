@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -45,8 +47,21 @@ public class CodeRunner {
 
     private static final String TAG = "compiler";
 
-    @Value("${docker.compiler.path}")
+    @Value("${app.docker.compiler.path}")
     private String dockerFilePath;
+
+    /**
+     * This method returns special DockerFile with all built-in programming languages
+     */
+    private File getDockerFile() {
+        return dockerFilePath.contains("app") ?
+                new File(dockerFilePath) :
+                Path.of(
+                Paths.get(".").toAbsolutePath().toString(),
+                dockerFilePath,
+               "Dockerfile"
+        ).toFile();
+    }
 
     /**
      * This method builds image from Dockerfile in dockerCompiler dir
@@ -56,7 +71,7 @@ public class CodeRunner {
         try {
             client.buildImageCmd()
                     .withTags(Set.of(TAG))
-                    .withDockerfile(new File(dockerFilePath, "Dockerfile"))
+                    .withDockerfile(getDockerFile())
                     .exec(new ResultCallback.Adapter<>())
                     .awaitCompletion();
             log.info("Image for codeRunner built");
@@ -94,9 +109,9 @@ public class CodeRunner {
         String containerId = null;
         final StringBuilder builderOut = new StringBuilder();
         final StringBuilder builderErr = new StringBuilder();
-
         try {
             containerId = startContainer(client, executor.getCmdParams(code));
+            log.debug("Container started: {}", containerId);
 
             getCodeResultInBuilder(client, containerId, builderOut, false);
             getCodeResultInBuilder(client, containerId, builderErr, true);
@@ -107,16 +122,14 @@ public class CodeRunner {
         } catch (InterruptedException exception) {
             Thread thread = Thread.currentThread();
             thread.interrupt();
-            log.warn("Thread {} was interrupted", thread.getName());
-            return CompletableFuture.completedFuture(
-                    new CodeResult(builderOut.toString().trim(), builderErr.toString().trim())
-            );
-        } catch (Exception exception) {
-            log.error("Thread {} was interrupted", exception.getMessage());
 
-            return CompletableFuture.completedFuture(
-                    new CodeResult(builderOut.toString().trim(), builderErr.toString().trim())
-            );
+            log.warn("Thread {} was interrupted", thread.getName(), exception);
+
+            return CompletableFuture.failedFuture(exception);
+        } catch (Exception exception) {
+            log.error("Code execution failed", exception);
+
+            return CompletableFuture.failedFuture(exception);
         }
         finally {
             removeContainer(containerId, client);

@@ -3,12 +3,6 @@ plugins {
 	id 'java'
 }
 
-//java {
-//	toolchain {
-//		languageVersion = JavaLanguageVersion.of(21)
-//	}
-//}
-
 bootJar {
 	enabled = true
 	archiveFileName = 'code-compiler-api.jar'
@@ -33,7 +27,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.5.5'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
 	implementation 'jakarta.servlet:jakarta.servlet-api'
 

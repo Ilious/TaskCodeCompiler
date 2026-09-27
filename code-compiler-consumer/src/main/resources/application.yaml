@@ -8,12 +8,19 @@ broker:
   login:
     username: guest
     password: guest
-    address: rabbitmq # localhost or rabbitmq
+    address: ${BROKER_ADDRESS:localhost}
     port: 5672
 
-docker:
-  compiler:
-    path: /app/code-compiler-consumer/dockerCompiler # /app/dockerCompiler or another path on windows
+app:
+  docker:
+    compiler:
+      path: ${APP_DOCKERFILE_PATH:./code-compiler-consumer/dockerCompiler}
+    docker-host: ${APP_DOCKER_HOST:tcp://localhost:2375}
+
+  async-config:
+    core-pool-size: 4
+    max-pool-size: 6
+    queue-capacity: 100
 
 logging:
   level:

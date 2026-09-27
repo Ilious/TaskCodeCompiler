@@ -4,19 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @Builder
 @AllArgsConstructor
 public class SessionDto {
 
-    private String id;
+    private UUID id;
 
-    private Long user_id;
+    private Long userId;
 
-    private Instant stTime;
+    private Instant createdAt;
 
-    private Duration duration;
+    private Instant expiresAt;
 }

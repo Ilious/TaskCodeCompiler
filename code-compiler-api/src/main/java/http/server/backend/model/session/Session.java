@@ -4,10 +4,11 @@ import http.server.backend.model.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
+@Table(name = "sessions")
 @Getter
 @Setter
 @Builder
@@ -17,14 +18,19 @@ public class Session {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;
 
-    @Column(name = "st_time")
-    private Instant stTime;
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 
-    private Duration duration;
+    @Column(name = "expires_at", nullable = false)
+    private Instant expiresAt;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    public boolean isExpired() {
+        return Instant.now().isAfter(expiresAt);
+    }
 }

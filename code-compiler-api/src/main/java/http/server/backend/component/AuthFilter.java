@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -48,7 +49,7 @@ public class AuthFilter implements Filter {
         }
 
         try {
-            final String token = getTokenFromRequest(httpReq);
+            final UUID token = getTokenFromRequest(httpReq);
             if (sessionService.validateSession(token)) {
                 Long userId = sessionService.getUserId(token);
 
@@ -65,10 +66,10 @@ public class AuthFilter implements Filter {
 
                 filterChain.doFilter(servletRequest, servletResponse);
             } else {
-                throw new AuthenticationException("Token is not correct", token);
+                throw new AuthenticationException("Authorization token is not correct", token.toString());
             }
         } catch (AuthenticationException ex) {
-            String err = String.format("Token [%s] is not correct", ex.getBearerToken());
+            String err = String.format("Authorization token [%s] is not correct", ex.getBearerToken());
             log.warn("{}", err);
             ApiError error = ApiError.builder()
                     .code(ex.getBearerToken() == null ?
@@ -80,10 +81,10 @@ public class AuthFilter implements Filter {
         }
     }
 
-    public String getTokenFromRequest(HttpServletRequest servletRequest) {
+    public UUID getTokenFromRequest(HttpServletRequest servletRequest) {
         final String bearer = servletRequest.getHeader(AUTHORIZATION);
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer "))
-            return bearer.substring(7);
+            return UUID.fromString(bearer.substring(7));
         throw new AuthenticationException("Token is not correct", null);
     }
 

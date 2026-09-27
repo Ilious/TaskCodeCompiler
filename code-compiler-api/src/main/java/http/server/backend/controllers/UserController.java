@@ -1,6 +1,6 @@
 package http.server.backend.controllers;
 
-import http.server.backend.model.user.UserDto;
+import http.server.backend.model.user.ResponseUser;
 import http.server.backend.model.api.BearerToken;
 import http.server.backend.model.session.SessionDto;
 import http.server.backend.model.user.RequestUser;
@@ -40,7 +40,7 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "User exists",
                     content = @Content(mediaType = "application/json")),
     })
-    public UserDto registerUser(@RequestBody @Valid RequestUser user) {
+    public ResponseUser registerUser(@RequestBody @Valid RequestUser user) {
         return userService.createUser(user);
     }
 
@@ -56,9 +56,11 @@ public class UserController {
                     content = @Content(mediaType = "application/json")),
     })
     public BearerToken loginUser(@RequestBody @Valid RequestUser user) {
-        UserDto loggedUserDto = userService.loginUser(user);
+        ResponseUser loggedUserDto = userService.loginUser(user);
         SessionDto sessionDto = sessionService.createSession(loggedUserDto);
 
-        return BearerToken.of(sessionDto.getId());
+        return BearerToken.of(
+                String.valueOf(sessionDto.getId())
+        );
     }
 }
