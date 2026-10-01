@@ -3,7 +3,6 @@ package http.server.backend.sender;
 import http.server.backend.config.rabbit.RabbitConfig;
 import http.server.backend.model.CodeResult;
 import http.server.backend.model.Task;
-import http.server.backend.model.enums.Status;
 import http.server.backend.model.queue.ResultMessage;
 import http.server.backend.repository.TaskRepo;
 import http.server.backend.repository.interfaces.ICodeResultRepo;
@@ -12,8 +11,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -21,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RabbitService implements IRabbitService {
 
     private final TaskRepo taskRepo;
-    Map<String, CompletableFuture<CodeResult>> codeResultStorage = new ConcurrentHashMap<>();
+
+    Set<String> codeResultStorage = ConcurrentHashMap.newKeySet();
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -43,20 +42,21 @@ public class RabbitService implements IRabbitService {
     public void sendMessage(Task task) {
         log.debug("task with id {} sent", task.getId());
 
-        codeResultStorage.put(task.getId(), new CompletableFuture<>());
+        codeResultStorage.add(task.getId());
 
         rabbitTemplate.convertAndSend(EXCHANGE, KEY, task);
     }
 
     @RabbitListener(queues = "result.queue")
-    public void processResult(ResultMessage result) {
-        String taskId = result.getCorrelationId();
+    public void processResult(ResultMessage message) {
+        String taskId = message.getCorrelationId();
         log.debug("received result for task: {}", taskId);
 
-        CompletableFuture<CodeResult> futureResult = codeResultStorage.remove(taskId);
-        if (futureResult != null) {
-            taskRepo.getTask(taskId).setStatus(Status.Ready);
-            codeResultRepo.putResult(taskId, result.getResult());
+        if (codeResultStorage.remove(taskId)) {
+            CodeResult result = message.getResult();
+            taskRepo.getTask(taskId).setStatus(result.getStatus());
+
+            codeResultRepo.putResult(taskId, result);
         }
     }
 }

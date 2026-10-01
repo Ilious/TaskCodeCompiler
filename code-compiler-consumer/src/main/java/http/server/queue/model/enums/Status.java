@@ -2,7 +2,8 @@ package http.server.queue.model.enums;
 
 public enum Status {
 
-    InProgress,
-    Ready,
-    Failed
+    IN_PROGRESS,
+    READY,
+    FAILED,
+    TIME_OUT
 }

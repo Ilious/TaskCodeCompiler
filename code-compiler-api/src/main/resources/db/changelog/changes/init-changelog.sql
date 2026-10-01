@@ -17,8 +17,8 @@ CREATE TABLE sessions
 CREATE TABLE "users"
 (
     id       BIGINT NOT NULL,
-    login    VARCHAR(255),
-    password VARCHAR(255),
+    login    VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     CONSTRAINT pk_user PRIMARY KEY (id)
 );
 

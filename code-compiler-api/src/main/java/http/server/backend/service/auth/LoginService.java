@@ -9,7 +9,6 @@ import http.server.backend.repository.UserRepoJPA;
 import http.server.backend.service.interfaces.IUserService;
 import http.server.backend.utils.LoginUtils;
 import http.server.backend.exceptions.storage.EntityExistsException;
-import http.server.backend.exceptions.storage.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,14 +37,15 @@ public class LoginService implements IUserService {
 
     @Override
     public ResponseUser loginUser(RequestUser user) {
-        if (!existsUserByLogin(user.login()))
-            throw new EntityNotFoundException(user.login(), "user");
+        boolean isNotPassed = !existsUserByLogin(user.login());
 
         User userByLogin = userRepo.getUsersByLogin(user.login());
         String password = userByLogin.getPassword();
 
-        if (!LoginUtils.verifyPassword(user.password(), password))
-            throw new LoginException("user is not registered in system", user.password());
+        isNotPassed |= !LoginUtils.verifyPassword(user.password(), password);
+
+        if (isNotPassed)
+            throw new LoginException("Error wrong login or password", user.login());
 
         return userMapper.toDto(userByLogin);
     }

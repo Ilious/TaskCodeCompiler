@@ -9,15 +9,17 @@ import http.server.queue.component.codeExecutor.CExecutor;
 import http.server.queue.component.codeExecutor.CPlusesExecutor;
 import http.server.queue.component.codeExecutor.CodeExecutor;
 import http.server.queue.component.codeExecutor.PythonExecutor;
+import http.server.queue.exception.CodeExecutionException;
+import http.server.queue.exception.CodeExecutionTimeoutException;
 import http.server.queue.model.CodeResult;
 import http.server.queue.model.Task;
 import http.server.queue.model.enums.Compiler;
+import http.server.queue.model.enums.Status;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -25,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,6 +51,9 @@ public class CodeRunner {
     @Value("${app.docker.compiler.path}")
     private String dockerFilePath;
 
+    @Value("${app.docker.compiler.timeout-in-seconds:30}")
+    private Long codeRunTimeout;
+
     /**
      * This method returns special DockerFile with all built-in programming languages
      */
@@ -73,7 +77,7 @@ public class CodeRunner {
                     .withTags(Set.of(TAG))
                     .withDockerfile(getDockerFile())
                     .exec(new ResultCallback.Adapter<>())
-                    .awaitCompletion();
+                    .awaitCompletion(codeRunTimeout, TimeUnit.SECONDS);
             log.info("Image for codeRunner built");
 
             client.tagImageCmd("debian", TAG, "latest");
@@ -87,8 +91,7 @@ public class CodeRunner {
      * @param task object of a task to be run in dockerClient
      * @return CompletableFuture<CodeResult>
      */
-    @Async("asyncTaskExecutor")
-    public CompletableFuture<CodeResult> execute(Task task) {
+    public CodeResult execute(Task task) {
         return switch (task.getCompiler()) {
             case Compiler.C -> run(task.getCode(), cExecutor);
             case Compiler.CPluses -> run(task.getCode(), cPlusesExecutor);
@@ -105,7 +108,7 @@ public class CodeRunner {
      * @param executor the CodeExecutor defined in execute method
      * @return CompletableFuture<CodeResult>
      */
-    private CompletableFuture<CodeResult> run(String code, CodeExecutor executor) {
+    private CodeResult run(String code, CodeExecutor executor) throws CodeExecutionException {
         String containerId = null;
         final StringBuilder builderOut = new StringBuilder();
         final StringBuilder builderErr = new StringBuilder();
@@ -116,8 +119,10 @@ public class CodeRunner {
             getCodeResultInBuilder(client, containerId, builderOut, false);
             getCodeResultInBuilder(client, containerId, builderErr, true);
 
-            return CompletableFuture.completedFuture(
-                    new CodeResult(builderOut.toString().trim(), builderErr.toString().trim())
+            return new CodeResult(
+                    builderOut.toString().trim(),
+                    builderErr.toString().trim(),
+                    Status.READY
             );
         } catch (InterruptedException exception) {
             Thread thread = Thread.currentThread();
@@ -125,11 +130,11 @@ public class CodeRunner {
 
             log.warn("Thread {} was interrupted", thread.getName(), exception);
 
-            return CompletableFuture.failedFuture(exception);
+            throw new CodeExecutionException(exception);
         } catch (Exception exception) {
-            log.error("Code execution failed", exception);
+            log.error("Code execution failed {}", exception.getMessage());
 
-            return CompletableFuture.failedFuture(exception);
+            throw new CodeExecutionException(exception);
         }
         finally {
             removeContainer(containerId, client);
@@ -152,10 +157,15 @@ public class CodeRunner {
                 .exec(new ResultCallback.Adapter<>() {
                     @Override
                     public void onNext(Frame object) {
-                        logResult.append(new String(object.getPayload(), StandardCharsets.UTF_8).trim()).append(" ");
+                        logResult.append(new String(object.getPayload(), StandardCharsets.UTF_8));
                         super.onNext(object);
                     }
                 }).awaitCompletion(10, TimeUnit.SECONDS);
+
+        if (logResult.length() >= 2000) {
+            log.warn("Exception getting result: too long result boundary >= 2000 characters, {}", logResult.length());
+            throw new CodeExecutionException("Exception getting result: too long result boundary >= 2000 characters");
+        }
     }
 
     /**
@@ -177,9 +187,14 @@ public class CodeRunner {
 
         client.startContainerCmd(containerId).exec();
 
-        client.waitContainerCmd(containerId)
+        boolean isFinished = client.waitContainerCmd(containerId)
                 .exec(new WaitContainerResultCallback())
-                .awaitCompletion(30, TimeUnit.SECONDS);
+                .awaitCompletion(codeRunTimeout, TimeUnit.SECONDS);
+
+        if (!isFinished)
+            throw new CodeExecutionTimeoutException(
+                    String.format("Execution exceeded %d seconds", codeRunTimeout)
+            );
 
         return containerId;
     }

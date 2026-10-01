@@ -30,7 +30,7 @@ public class TaskService implements ITaskService {
 
     @Override
     public Task postTask(String code, String compiler) {
-        Task task = new Task(generateIdx(), code, Compiler.from(compiler), Status.InProgress);
+        Task task = new Task(generateIdx(), code, Compiler.from(compiler), Status.IN_PROGRESS);
 
         Task sentTask = taskRepo.postTask(task.getId(), task);
         rabbitService.sendMessage(sentTask);
@@ -56,7 +56,7 @@ public class TaskService implements ITaskService {
 
     @Override
     public CodeResult putResultByTaskId(String id, CodeResult result) {
-        taskRepo.getTask(id).setStatus(Status.Ready);
+        taskRepo.getTask(id).setStatus(Status.READY);
         return codeResultRepo.putResult(id, result);
     }
 }

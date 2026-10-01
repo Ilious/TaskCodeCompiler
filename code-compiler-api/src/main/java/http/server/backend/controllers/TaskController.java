@@ -81,22 +81,4 @@ public class TaskController {
     public CodeResult getResultTaskById(@PathVariable(name = "task_id") String taskId) {
         return taskService.getResultByTaskId(taskId);
     }
-
-    @PostMapping("/commit/{task_id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Example endpoint to post codeResult from consumer service")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Success",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "No token",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "Token is not valid anymore",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "Task not found",
-                    content = @Content(mediaType = "application/json")),
-    })
-    public CodeResult postResultTaskById(@PathVariable(name = "task_id") String taskId,
-                                         @RequestBody CodeResult codeResult) {
-        return taskService.putResultByTaskId(taskId, codeResult);
-    }
 }

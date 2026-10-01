@@ -1,6 +1,13 @@
 server:
   port: ${PORT:8090}
 
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 4
+
 broker:
   queue: code-processor
   exchange: rabbit_mq_exchange
@@ -14,13 +21,9 @@ broker:
 app:
   docker:
     compiler:
+      timeout-in-seconds: 30
       path: ${APP_DOCKERFILE_PATH:./code-compiler-consumer/dockerCompiler}
     docker-host: ${APP_DOCKER_HOST:tcp://localhost:2375}
-
-  async-config:
-    core-pool-size: 4
-    max-pool-size: 6
-    queue-capacity: 100
 
 logging:
   level:

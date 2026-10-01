@@ -1,6 +1,7 @@
 package http.server.backend.exceptions.Handlers;
 
 
+import http.server.backend.exceptions.authentication.LoginException;
 import http.server.backend.model.api.ApiError;
 import http.server.backend.exceptions.storage.EntityCreateException;
 import http.server.backend.exceptions.storage.EntityExistsException;
@@ -79,6 +80,19 @@ public class GlobalExceptionHandler {
         return ApiError.builder()
                 .description(errMessage)
                 .code(HttpStatus.BAD_REQUEST.value()).build();
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiError getLoginHandler(LoginException authException) {
+        String errMessage = String.format("Authorization exception: login or password is not correct by login %s",
+                authException.getLogin());
+
+        log.warn("{}:\n {}", errMessage, authException.getMessage());
+        return ApiError.builder()
+                .code(HttpStatus.FORBIDDEN.value())
+                .description(errMessage)
+                .build();
     }
 
 //    @ExceptionHandler

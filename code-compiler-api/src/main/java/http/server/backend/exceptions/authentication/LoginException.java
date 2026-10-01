@@ -5,10 +5,10 @@ import lombok.Getter;
 @Getter
 public class LoginException extends RuntimeException {
 
-    private final String password;
+    private final String login;
 
-    public LoginException(String message, String password) {
+    public LoginException(String message, String login) {
         super(message);
-        this.password = password;
+        this.login = login;
     }
 }

@@ -5,7 +5,8 @@ spring:
   rabbitmq:
     listener:
       simple:
-        default-requeue-rejected: false
+        concurrency: 5
+        max-concurrency: 10
 
   datasource:
     driver-class-name: org.postgresql.Driver

@@ -66,15 +66,13 @@ public class AuthFilter implements Filter {
 
                 filterChain.doFilter(servletRequest, servletResponse);
             } else {
-                throw new AuthenticationException("Authorization token is not correct", token.toString());
+                throw new AuthenticationException("Authorization failed: token is expired", HttpStatus.UNAUTHORIZED);
             }
         } catch (AuthenticationException ex) {
-            String err = String.format("Authorization token [%s] is not correct", ex.getBearerToken());
+            String err = String.format("Authentication failed: %s", ex.getStatus().name());
             log.warn("{}", err);
             ApiError error = ApiError.builder()
-                    .code(ex.getBearerToken() == null ?
-                            HttpStatus.UNAUTHORIZED.value() :
-                            HttpStatus.FORBIDDEN.value())
+                    .code(ex.getStatus().value())
                     .description(err)
                     .build();
             returnErr((HttpServletResponse) servletResponse, error);
@@ -84,8 +82,13 @@ public class AuthFilter implements Filter {
     public UUID getTokenFromRequest(HttpServletRequest servletRequest) {
         final String bearer = servletRequest.getHeader(AUTHORIZATION);
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer "))
-            return UUID.fromString(bearer.substring(7));
-        throw new AuthenticationException("Token is not correct", null);
+            try {
+                return UUID.fromString(bearer.substring(7));
+            } catch (IllegalArgumentException ex) {
+                log.warn("Authentication failed: malformed bearer token", ex);
+                throw new AuthenticationException("Authentication exception: token is not correct", HttpStatus.FORBIDDEN);
+            }
+        throw new AuthenticationException("Authentication exception: token is not correct", HttpStatus.UNAUTHORIZED);
     }
 
     public void returnErr(HttpServletResponse resp, ApiError apiError) throws IOException {

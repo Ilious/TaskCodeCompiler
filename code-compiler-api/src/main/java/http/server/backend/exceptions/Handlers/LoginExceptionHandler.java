@@ -15,8 +15,8 @@ public class LoginExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiError getLoginHandler(LoginException authException) {
-        String errMessage = String.format("Authentication exception password [%s] is not correct",
-                authException.getPassword());
+        String errMessage = String.format("Authentication exception error login [%s]. Login or password is not correct",
+                authException.getLogin());
 
         log.warn("{}:\n {}", errMessage, authException.getMessage());
         return ApiError.builder()
@@ -24,4 +24,17 @@ public class LoginExceptionHandler {
                 .description(errMessage)
                 .build();
     }
+//
+//    @ExceptionHandler
+//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+//    public ApiError getAuthHandler(AuthenticationException authException) {
+//        String errMessage = String.format("Authentication exception error login [%s]. Login or password is not correct",
+//                authException.getLogin());
+//
+//        log.warn("{}:\n {}", errMessage, authException.getMessage());
+//        return ApiError.builder()
+//                .code(HttpStatus.FORBIDDEN.value())
+//                .description(errMessage)
+//                .build();
+//    }
 }

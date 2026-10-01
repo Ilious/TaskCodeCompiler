@@ -69,7 +69,7 @@ public class SessionService implements ISessionService {
 
     @Transactional
     @Scheduled(
-            fixedRateString = "${app.session.clean-in-hours:1}",
+            fixedRateString = "${app.session.clean-interval-hours:1}",
             timeUnit = TimeUnit.HOURS
     )
     public void clearExpiredSessions() {

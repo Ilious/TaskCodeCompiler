@@ -1,14 +1,15 @@
 package http.server.backend.exceptions.authentication;
 
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 @Getter
 public class AuthenticationException extends RuntimeException{
 
-    private final String bearerToken;
+    private final HttpStatus status;
 
-    public AuthenticationException(String msg, String bearerToken) {
+    public AuthenticationException(String msg, HttpStatus statusCode) {
         super(msg);
-        this.bearerToken = bearerToken;
+        status = statusCode;
     }
 }

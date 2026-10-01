@@ -42,9 +42,6 @@ services:
 
     restart: on-failure
 
-    ports:
-      - "${CONSUMER_PORT}:${CONSUMER_PORT}"
-
     depends_on:
       rabbitmq:
         condition: service_healthy
