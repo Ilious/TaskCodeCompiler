@@ -1,16 +1,18 @@
 package http.server.backend.service.auth;
 
 import http.server.backend.exceptions.authentication.LoginException;
+import http.server.backend.exceptions.storage.EntityExistsException;
 import http.server.backend.mappers.UserMapper;
+import http.server.backend.model.user.RequestUser;
 import http.server.backend.model.user.ResponseUser;
 import http.server.backend.model.user.User;
-import http.server.backend.model.user.RequestUser;
 import http.server.backend.repository.UserRepoJPA;
 import http.server.backend.service.interfaces.IUserService;
 import http.server.backend.utils.LoginUtils;
-import http.server.backend.exceptions.storage.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,21 +39,25 @@ public class LoginService implements IUserService {
 
     @Override
     public ResponseUser loginUser(RequestUser user) {
-        boolean isNotPassed = !existsUserByLogin(user.login());
+        Optional<User> userByLogin = userRepo.findFirstByLogin(user.login());
 
-        User userByLogin = userRepo.getUsersByLogin(user.login());
-        String password = userByLogin.getPassword();
-
-        isNotPassed |= !LoginUtils.verifyPassword(user.password(), password);
-
-        if (isNotPassed)
+        if (userByLogin.isEmpty() || !LoginUtils.verifyPassword(
+                user.password(),
+                userByLogin.get().getPassword()
+        )) {
             throw new LoginException("Error wrong login or password", user.login());
+        }
 
-        return userMapper.toDto(userByLogin);
+        return userMapper.toDto(userByLogin.get());
     }
 
     @Override
     public User getUserById(Long id) {
         return userRepo.getUserById(id);
+    }
+
+    @Override
+    public User getUserByLogin(String login) {
+        return userRepo.getUsersByLogin(login);
     }
 }

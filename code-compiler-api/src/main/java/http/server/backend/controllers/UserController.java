@@ -1,13 +1,12 @@
 package http.server.backend.controllers;
 
-import http.server.backend.model.user.ResponseUser;
 import http.server.backend.model.api.BearerToken;
 import http.server.backend.model.session.SessionDto;
 import http.server.backend.model.user.RequestUser;
+import http.server.backend.model.user.ResponseUser;
 import http.server.backend.service.interfaces.ISessionService;
 import http.server.backend.service.interfaces.IUserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -31,29 +30,30 @@ public class UserController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Register user by login and password", description = "register user in storage")
+    @Operation(
+            summary = "Register a user",
+            description = "Register a new user with a login and password"
+    )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Success",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Fields null",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "409", description = "User exists",
-                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "201", description = "User registered successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "409", description = "User with this login already exists")
     })
     public ResponseUser registerUser(@RequestBody @Valid RequestUser user) {
         return userService.createUser(user);
     }
 
+
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Login user by login and password", description = "returns sessionId")
+    @Operation(
+            summary = "Login",
+            description = "Authenticate a user and create a new session. Returns a bearer token"
+    )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Success",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Fields null",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Password is not correct",
-                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "201", description = "Login successful and session created"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "401", description = "Invalid login or password")
     })
     public BearerToken loginUser(@RequestBody @Valid RequestUser user) {
         ResponseUser loggedUserDto = userService.loginUser(user);

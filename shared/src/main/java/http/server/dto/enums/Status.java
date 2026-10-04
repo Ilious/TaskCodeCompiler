@@ -1,4 +1,4 @@
-package http.server.queue.model.enums;
+package http.server.dto.enums;
 
 public enum Status {
 

@@ -1,18 +1,20 @@
 package http.server.backend.controllers;
 
-import http.server.backend.model.CodeResult;
-import http.server.backend.model.Task;
-import http.server.backend.model.enums.Status;
 import http.server.backend.service.interfaces.ITaskService;
+import http.server.dto.CodeResultDto;
+import http.server.dto.TaskDto;
+import http.server.dto.enums.Status;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 
 @SecurityRequirement(name = "bearerAuth")
@@ -32,53 +34,63 @@ public class TaskController {
 
     @PostMapping("/task/{compiler}")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Post task", description = "Create a new Task by route /task/{compiler} where compiler " +
-            "may be py, c or c++")
+    @Operation(
+            summary = "Submit code for execution",
+            description = "Create a new execution task. Supported compilers: py, c and c++"
+    )
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Task created",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "Token is not valid anymore",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "409", description = "Task by this id is already exists",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "500", description = "Error creating task",
-                    content = @Content(mediaType = "application/json"))
+            @ApiResponse(responseCode = "201", description = "Task created successfully"),
+            @ApiResponse(responseCode = "400", description = "Unsupported compiler or invalid request"),
+            @ApiResponse(responseCode = "401", description = "Authentication required"),
+            @ApiResponse(responseCode = "403", description = "Session token has expired"),
+            @ApiResponse(responseCode = "500", description = "Failed to create or submit the task")
     })
-    public Task PostTask(@RequestBody String code, @PathVariable String compiler) {
-        return taskService.postTask(code, compiler);
+    public TaskDto PostTask(
+            @RequestBody String code,
+            @PathVariable String compiler,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return taskService.postTask(code, compiler, userId);
     }
+
 
     @GetMapping("/status/{task_id}")
-    @Operation(summary = "Get status of a task by specified id", description = "Get task's status by id")
+    @Operation(
+            summary = "Get task status",
+            description = "Get the current execution status of a task"
+    )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Success",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "Token is not valid anymore",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "Task not found",
-                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "200", description = "Task status returned successfully"),
+            @ApiResponse(responseCode = "401", description = "Authentication required"),
+            @ApiResponse(responseCode = "403", description = "Session token has expired"),
+            @ApiResponse(responseCode = "404", description = "Task not found")
     })
-    public Status getStatusTaskById(@PathVariable(name = "task_id") String taskId) {
-        return taskService.getStatusByTaskId(taskId);
+    public Status getStatusTaskById(
+            @PathVariable(name = "task_id") UUID taskId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return taskService.getStatusByTaskId(taskId, userId);
     }
 
+
     @GetMapping("/result/{task_id}")
-    @Operation(summary = "Get result of a task by specified id", description = "Get task's code and compiler by id")
+    @Operation(
+            summary = "Get task result",
+            description = "Get the execution result of a task"
+    )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Success",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "No token",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "Token is not valid anymore",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "Task not found",
-                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "200", description = "Task result returned successfully"),
+            @ApiResponse(responseCode = "401", description = "Authentication required"),
+            @ApiResponse(responseCode = "403", description = "Session token has expired"),
+            @ApiResponse(responseCode = "404", description = "Task not found")
     })
-    public CodeResult getResultTaskById(@PathVariable(name = "task_id") String taskId) {
-        return taskService.getResultByTaskId(taskId);
+    public CodeResultDto getResultTaskById(
+            @PathVariable(name = "task_id") UUID taskId,
+            Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return taskService.getResultByTaskId(taskId, userId);
     }
 }

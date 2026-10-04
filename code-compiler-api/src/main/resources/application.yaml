@@ -19,7 +19,6 @@ spring:
       ddl-auto: none
 
   liquibase:
-    clear-checksums: true
     change-log: classpath:/db/changelog/db.changelog-master.yaml
 
 server:
@@ -34,8 +33,8 @@ broker:
   exchange: rabbit_mq_exchange
   key: rabbit_mq_r_key
   login:
-    username: guest
-    password: guest
+    username: ${RABBIT_USER:compiler}
+    password: ${RABBIT_PASSWORD:compiler}
     address: ${BROKER_ADDRESS:localhost}
     port: 5672
 

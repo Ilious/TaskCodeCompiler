@@ -4,7 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Getter @Setter
+@Getter
+@Setter
 @ConfigurationProperties("broker")
 public class RabbitConfig {
 
@@ -16,7 +17,8 @@ public class RabbitConfig {
 
     private Login login;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class Login {
 
         private String username;

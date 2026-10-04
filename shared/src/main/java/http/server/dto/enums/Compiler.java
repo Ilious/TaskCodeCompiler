@@ -1,6 +1,5 @@
-package http.server.backend.model.enums;
+package http.server.dto.enums;
 
-import http.server.backend.exceptions.InternalServerException;
 import lombok.Getter;
 
 @Getter
@@ -20,6 +19,6 @@ public enum Compiler {
         for (Compiler compiler: Compiler.values())
             if (compiler.value.equalsIgnoreCase(parseString))
                 return compiler;
-        throw new InternalServerException("Not found compiler");
+        throw new IllegalArgumentException("This compiler doesn't exist");
     }
 }

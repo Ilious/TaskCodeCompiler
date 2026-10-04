@@ -1,10 +1,11 @@
 package http.server.queue.consumer;
 
+import http.server.dto.CodeResultDto;
+import http.server.dto.ResultMessage;
+import http.server.dto.TaskDto;
+import http.server.dto.enums.Status;
 import http.server.queue.exception.CodeExecutionException;
-import http.server.queue.model.CodeResult;
-import http.server.queue.model.Task;
-import http.server.queue.model.enums.Status;
-import http.server.queue.model.queue.ResultMessage;
+import http.server.queue.exception.CodeExecutionTimeoutException;
 import http.server.queue.service.CodeRunner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,24 +25,37 @@ public class CodeProcessor {
     private final RabbitTemplate rabbitTemplate;
 
     @RabbitListener(queues = "${broker.queue}")
-    public void processTaskFromQueue(Task task) {
+    public void processTaskFromQueue(TaskDto task) {
         log.debug("task by id {} in process", task.getId());
 
         try {
-            CodeResult result = runner.execute(task);
+            CodeResultDto result = runner.execute(task);
 
-            task.setStatus(Status.READY);
             log.debug("Task completed by id {}", task.getId());
 
             rabbitTemplate.convertAndSend("result.queue", new ResultMessage(result, task.getId()));
+        } catch (CodeExecutionTimeoutException e) {
+            sendFailureResult(task, Status.TIME_OUT, e);
+
+            log.error("Task execution failed according to TIME OUT {} {}", task.getId(), e.getMessage());
         } catch (CodeExecutionException e) {
-            task.setStatus(Status.FAILED);
-            rabbitTemplate.convertAndSend(
-                    "result.queue",
-                    new ResultMessage(new CodeResult("", "", Status.FAILED), task.getId())
-            );
+            sendFailureResult(task, Status.FAILED, e);
 
             log.error("Task execution failed {} {}", task.getId(), e.getMessage());
         }
+    }
+
+    private void sendFailureResult(TaskDto task, Status status, Exception e) {
+        CodeResultDto result = CodeResultDto.builder()
+                .codeResult("")
+                .codeError(e.getMessage())
+                .status(status)
+                .exitCode(null)
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                "result.queue",
+                new ResultMessage(result, task.getId())
+        );
     }
 }

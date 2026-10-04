@@ -1,18 +1,19 @@
 package http.server.backend.service.interfaces;
 
 
-import http.server.backend.model.CodeResult;
-import http.server.backend.model.Task;
-import http.server.backend.model.enums.Status;
+import http.server.dto.CodeResultDto;
+import http.server.dto.TaskDto;
+import http.server.dto.enums.Status;
+
+import java.util.UUID;
 
 public interface ITaskService {
-    Task postTask(String code, String compiler);
+    TaskDto postTask(String code, String compiler, Long userId);
 
-    Task getTaskById(String id);
+    TaskDto getTaskById(UUID id, Long userId);
 
-    Status getStatusByTaskId(String id);
+    Status getStatusByTaskId(UUID id, Long userId);
 
-    CodeResult getResultByTaskId(String id);
+    CodeResultDto getResultByTaskId(UUID id, Long userId);
 
-    CodeResult putResultByTaskId(String id, CodeResult result);
 }

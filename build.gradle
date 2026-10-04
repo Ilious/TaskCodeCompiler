@@ -20,4 +20,10 @@ subprojects {
     java {
         sourceCompatibility = '21'
     }
+
+    dependencyManagement {
+        imports {
+            mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+        }
+    }
 }

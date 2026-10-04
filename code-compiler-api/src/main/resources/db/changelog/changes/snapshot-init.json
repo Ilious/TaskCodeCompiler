@@ -24,8 +24,7 @@
             "snapshotId": "963d100"
           }
         }
-      ]
-      ,
+      ],
       "liquibase.structure.core.Column": [
         {
           "column": {
@@ -114,27 +113,23 @@
             }
           }
         }
-      ]
-      ,
+      ],
       "liquibase.structure.core.ForeignKey": [
         {
           "foreignKey": {
             "foreignKeyColumns": [
               "liquibase.structure.core.Column#963d107"
-            ]
-            ,
+            ],
             "foreignKeyTable": "liquibase.structure.core.Table#963d102",
             "name": "FK_SESSION_ON_USER",
             "primaryKeyColumns": [
               "liquibase.structure.core.Column#963d109"
-            ]
-            ,
+            ],
             "primaryKeyTable": "liquibase.structure.core.Table#963d110",
             "snapshotId": "963d108"
           }
         }
-      ]
-      ,
+      ],
       "liquibase.structure.core.Index": [
         {
           "index": {
@@ -144,8 +139,7 @@
                   "name": "id"
                 }
               }
-            ]
-            ,
+            ],
             "name": "IX_pk_session",
             "snapshotId": "963d103",
             "table": "liquibase.structure.core.Table#963d102",
@@ -160,24 +154,21 @@
                   "name": "id"
                 }
               }
-            ]
-            ,
+            ],
             "name": "IX_pk_user",
             "snapshotId": "963d111",
             "table": "liquibase.structure.core.Table#963d110",
             "unique": true
           }
         }
-      ]
-      ,
+      ],
       "liquibase.structure.core.PrimaryKey": [
         {
           "primaryKey": {
             "backingIndex": "liquibase.structure.core.Index#963d103",
             "columns": [
               "liquibase.structure.core.Column#963d104"
-            ]
-            ,
+            ],
             "name": "pk_session",
             "snapshotId": "963d115",
             "table": "liquibase.structure.core.Table#963d102"
@@ -188,15 +179,13 @@
             "backingIndex": "liquibase.structure.core.Index#963d111",
             "columns": [
               "liquibase.structure.core.Column#963d109"
-            ]
-            ,
+            ],
             "name": "pk_user",
             "snapshotId": "963d114",
             "table": "liquibase.structure.core.Table#963d110"
           }
         }
-      ]
-      ,
+      ],
       "liquibase.structure.core.Schema": [
         {
           "schema": {
@@ -205,8 +194,7 @@
             "snapshotId": "963d101"
           }
         }
-      ]
-      ,
+      ],
       "liquibase.structure.core.Sequence": [
         {
           "sequence": {
@@ -217,8 +205,7 @@
             "startValue": "1!{java.math.BigInteger}"
           }
         }
-      ]
-      ,
+      ],
       "liquibase.structure.core.Table": [
         {
           "table": {
@@ -227,17 +214,14 @@
               "liquibase.structure.core.Column#963d105",
               "liquibase.structure.core.Column#963d106",
               "liquibase.structure.core.Column#963d107"
-            ]
-            ,
+            ],
             "indexes": [
               "liquibase.structure.core.Index#963d103"
-            ]
-            ,
+            ],
             "name": "session",
             "outgoingForeignKeys": [
               "liquibase.structure.core.ForeignKey#963d108"
-            ]
-            ,
+            ],
             "primaryKey": "liquibase.structure.core.PrimaryKey#963d115",
             "schema": "liquibase.structure.core.Schema#963d101",
             "snapshotId": "963d102"
@@ -249,12 +233,10 @@
               "liquibase.structure.core.Column#963d109",
               "liquibase.structure.core.Column#963d112",
               "liquibase.structure.core.Column#963d113"
-            ]
-            ,
+            ],
             "indexes": [
               "liquibase.structure.core.Index#963d111"
-            ]
-            ,
+            ],
             "name": "user",
             "primaryKey": "liquibase.structure.core.PrimaryKey#963d114",
             "schema": "liquibase.structure.core.Schema#963d101",
@@ -262,7 +244,6 @@
           }
         }
       ]
-      
     },
     "snapshotControl": {
       "snapshotControl": {
@@ -278,7 +259,6 @@
           "liquibase.structure.core.UniqueConstraint",
           "liquibase.structure.core.View"
         ]
-        
       }
     }
   }

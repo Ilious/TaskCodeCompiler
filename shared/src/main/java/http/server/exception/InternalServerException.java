@@ -1,4 +1,4 @@
-package http.server.queue.exception;
+package http.server.exception;
 
 public class InternalServerException extends RuntimeException {
 

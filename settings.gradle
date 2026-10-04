@@ -2,3 +2,4 @@ rootProject.name = 'backend'
 
 include 'code-compiler-api'
 include 'code-compiler-consumer'
+include 'shared'

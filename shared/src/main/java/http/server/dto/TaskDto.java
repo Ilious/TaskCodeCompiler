@@ -1,20 +1,22 @@
-package http.server.queue.model;
+package http.server.dto;
 
 
-import http.server.queue.model.enums.Status;
-import http.server.queue.model.enums.Compiler;
+import http.server.dto.enums.Compiler;
+import http.server.dto.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Data
-public class Task {
+public class TaskDto {
 
-    private String id;
+    private UUID id;
 
     private String code;
 

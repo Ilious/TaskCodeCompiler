@@ -1,62 +1,90 @@
 package http.server.backend.service;
 
 
+import http.server.backend.exceptions.authentication.AuthenticationException;
+import http.server.backend.exceptions.storage.EntityNotFoundException;
+import http.server.backend.mappers.CodeResultMapper;
+import http.server.backend.mappers.TaskMapper;
+import http.server.backend.model.codeResult.CodeResult;
+import http.server.backend.model.task.Task;
+import http.server.backend.repository.CodeResultRepoJPA;
+import http.server.backend.repository.TaskRepoJPA;
 import http.server.backend.sender.IRabbitService;
 import http.server.backend.service.interfaces.ITaskService;
-import http.server.backend.model.CodeResult;
-import http.server.backend.model.Task;
-import http.server.backend.model.enums.Compiler;
-import http.server.backend.model.enums.Status;
-import http.server.backend.repository.interfaces.ICodeResultRepo;
-import http.server.backend.repository.interfaces.ITaskRepo;
+import http.server.backend.service.interfaces.IUserService;
+import http.server.dto.CodeResultDto;
+import http.server.dto.TaskDto;
+import http.server.dto.enums.Compiler;
+import http.server.dto.enums.Status;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TaskService implements ITaskService {
 
-    private final ITaskRepo taskRepo;
+    private final TaskRepoJPA taskRepo;
 
-    private final ICodeResultRepo codeResultRepo;
+    private final CodeResultRepoJPA codeResultRepo;
 
     private final IRabbitService rabbitService;
 
-    private String generateIdx() {
-        return UUID.randomUUID().toString();
+    private final IUserService userService;
+
+    private final TaskMapper taskMapper;
+
+    private final CodeResultMapper codeResultMapper;
+
+    @Override
+    @Transactional
+    public TaskDto postTask(String code, String compiler, Long userId) {
+        Task task = Task.builder()
+                .code(code)
+                .compiler(Compiler.from(compiler))
+                .status(Status.IN_PROGRESS)
+                .user(userService.getUserById(userId))
+                .build();
+
+        Task saved = taskRepo.save(task);
+        TaskDto dto = taskMapper.toDto(saved);
+        rabbitService.sendMessage(dto);
+
+        return dto;
     }
 
     @Override
-    public Task postTask(String code, String compiler) {
-        Task task = new Task(generateIdx(), code, Compiler.from(compiler), Status.IN_PROGRESS);
+    public TaskDto getTaskById(UUID id, Long userId) {
+        Task task = taskRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(id.toString(), "task"));
 
-        Task sentTask = taskRepo.postTask(task.getId(), task);
-        rabbitService.sendMessage(sentTask);
+        if (!task.getUser().getId().equals(userId))
+            throw new AuthenticationException(
+                    "User is not authorized for the task %s".formatted(id),
+                    HttpStatus.UNAUTHORIZED
+            );
 
-        return sentTask;
+        return taskMapper.toDto(task);
     }
 
     @Override
-    public Task getTaskById(String id) {
-        return taskRepo.getTask(id);
+    public Status getStatusByTaskId(UUID id, Long userId) {
+        return getTaskById(id, userId).getStatus();
     }
 
     @Override
-    public Status getStatusByTaskId(String id) {
-        return getTaskById(id).getStatus();
-    }
+    public CodeResultDto getResultByTaskId(UUID id, Long userId) {
+        log.debug("started get");
+        TaskDto taskById = getTaskById(id, userId);
+        CodeResult codeResult = codeResultRepo.findByTaskId(id);
 
-    @Override
-    public CodeResult getResultByTaskId(String id) {
-        Task taskById = getTaskById(id);
-        return codeResultRepo.getResult(id);
+        CodeResultDto dto = codeResultMapper.toDto(codeResult);
+        log.debug("{}", dto);
+        return dto;
     }
-
-    @Override
-    public CodeResult putResultByTaskId(String id, CodeResult result) {
-        taskRepo.getTask(id).setStatus(Status.READY);
-        return codeResultRepo.putResult(id, result);
     }
-}

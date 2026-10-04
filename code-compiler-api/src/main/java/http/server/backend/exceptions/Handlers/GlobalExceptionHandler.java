@@ -1,11 +1,12 @@
 package http.server.backend.exceptions.Handlers;
 
 
+import http.server.backend.exceptions.authentication.AuthenticationException;
 import http.server.backend.exceptions.authentication.LoginException;
-import http.server.backend.model.api.ApiError;
 import http.server.backend.exceptions.storage.EntityCreateException;
 import http.server.backend.exceptions.storage.EntityExistsException;
 import http.server.backend.exceptions.storage.EntityNotFoundException;
+import http.server.backend.model.api.ApiError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -58,6 +59,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleValidationAnnotationException(IllegalArgumentException exception) {
+        StringBuilder errMessage = new StringBuilder("Input fields aren't correct: ");
+
+        log.warn("{}\n {}", errMessage, exception.getMessage());
+        return ApiError.builder()
+                .description(errMessage.toString())
+                .code(HttpStatus.BAD_REQUEST.value()).build();
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleValidationAnnotationException(MethodArgumentNotValidException exception) {
         StringBuilder errMessage = new StringBuilder("Input fields aren't correct: ");
         String errorFields = exception.getBindingResult().getFieldErrors().stream()
@@ -95,18 +107,15 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
-//    @ExceptionHandler
-//    public ApiError getDockerHandler(HttpHostConnectException exception) {
-//        String errMessage = "Internal server exception";
-//        System.out.println(exception.getHost());
-//        System.out.println(exception.getHost().getHostName());
-//        System.out.println(exception.getHost().getPort());
-//        log.warn("{}:\n {}", errMessage, exception.getMessage());
-//        return ApiError.builder()
-//                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
-//                .description(errMessage)
-//                .build();
-//    }
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiError handleAuthenticationException(AuthenticationException authException) {
+        log.warn("{}:\n {}", authException, authException.getMessage());
+        return ApiError.builder()
+                .code(HttpStatus.FORBIDDEN.value())
+                .description(authException.getMessage())
+                .build();
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

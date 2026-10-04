@@ -1,9 +1,9 @@
 package http.server.backend.sender;
 
 
-import http.server.backend.model.Task;
+import http.server.dto.TaskDto;
 
 public interface IRabbitService {
 
-    void sendMessage(Task task);
+    void sendMessage(TaskDto task);
 }
