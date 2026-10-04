@@ -1,0 +1,29 @@
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 4
+
+broker:
+  queue: code-processor
+  exchange: rabbit_mq_exchange
+  key: rabbit_mq_r_key
+  login:
+    username: ${RABBIT_USER:compiler}
+    password: ${RABBIT_PASSWORD:compiler}
+    address: ${BROKER_ADDRESS:localhost}
+    port: 5672
+
+app:
+  docker:
+    compiler:
+      max-output-bytes: 2000
+      timeout-in-seconds: 30
+      image-built-timeout: 180
+      path: ${APP_DOCKERFILE_PATH:./code-compiler-consumer/dockerCompiler}
+    docker-host: ${APP_DOCKER_HOST:tcp://localhost:2375}
+
+logging:
+  level:
+    http.server.queue: trace

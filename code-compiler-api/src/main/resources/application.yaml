@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: backend
+
+  rabbitmq:
+    listener:
+      simple:
+        concurrency: 5
+        max-concurrency: 10
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL:jdbc:postgresql://localhost:5434/${DB:backend}}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+server:
+  port: ${PORT:8090}
+
+springdoc:
+  swagger-ui:
+    url: /v3/api-docs
+
+broker:
+  queue: code-processor
+  exchange: rabbit_mq_exchange
+  key: rabbit_mq_r_key
+  login:
+    username: ${RABBIT_USER:compiler}
+    password: ${RABBIT_PASSWORD:compiler}
+    address: ${BROKER_ADDRESS:localhost}
+    port: 5672
+
+app:
+  session:
+    ttl-minutes: 10
+    clean-interval-hours: 1
+
+logging:
+  level:
+    http.server.backend: trace
